@@ -239,16 +239,88 @@ class JwtAuthServiceApplicationTests {
     void grantAdmin_forbidden() throws Exception {
         Long userId = 1L;
 
-        given(userService.grantAdmin(userId))
-                .willThrow(new RuntimeException("ACCESS_DENIED"));
+        SignupRequest request = new SignupRequest("Taeyeon", "qwerqwer123!!!", "LEETAEYEYEON");
+
+        User mockUser = User.builder()
+                .id(userId)
+                .username("Taeyeon")
+                .password("qwerqwer123!!!")
+                .nickname("LEETAEYEYEON")
+                .roles(Set.of("USER"))
+                .build();
+
+        given(userService.signup(any(),any(),any())).willReturn(mockUser);
+
+        mockMvc.perform(post("/signup")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk());
+
+        LoginRequest loginRequest = new LoginRequest("Taeyeon", "qwerqwer123!!!");
+
+        given(userService.login(any() ,any())).willReturn(mockUser);
+
+        MvcResult result = mockMvc.perform(post("/login")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginRequest)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String responseJson = result.getResponse().getContentAsString();
+        String token = objectMapper.readTree(responseJson).get("token").asText();
+
 
         mockMvc.perform(patch("/admin/users/" + userId + "/roles")
                         .with(csrf())
+                        .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.error.code").value("ACCESS_DENIED"))
                 .andExpect(jsonPath("$.error.message").value("관리자 권한이 필요한 요청입니다. 접근 권한이 없습니다."));
+
+
+    }
+
+
+    @Test
+    @DisplayName("유효하지 않은 토큰 사용")
+    void grantAdmin_invalid() throws Exception {
+        Long userId = 1L;
+
+        SignupRequest request = new SignupRequest("Taeyeon", "qwerqwer123!!!", "LEETAEYEYEON");
+
+        User mockUser = User.builder()
+                .id(userId)
+                .username("Taeyeon")
+                .password("qwerqwer123!!!")
+                .nickname("LEETAEYEYEON")
+                .roles(Set.of("USER"))
+                .build();
+
+        given(userService.signup(any(),any(),any())).willReturn(mockUser);
+
+        mockMvc.perform(post("/signup")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk());
+
+
+
+
+        mockMvc.perform(patch("/admin/users/" + userId + "/roles")
+                        .with(csrf())
+                        .header("Authorization", "Bearer " + "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlcyI6WyJVc2VyIl0sInN1YiI6InF3ZXJxd2VyMSIsImlhdCI6MTc0NTEzNjc3MCwiZXhwIjoxNzQ1MTQzOTcwfQ.BiJjajJh-Rh_piUyyKf-M52jCYcY84DObsf_QNdEuY8")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error.code").value("INVALID_TOKEN"))
+                .andExpect(jsonPath("$.error.message").value("유효하지 않은 인증 토큰입니다."));
+
+
     }
 
 }
