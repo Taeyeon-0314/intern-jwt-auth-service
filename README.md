@@ -58,7 +58,7 @@
 ```
 
 ## 🔑 Swagger API 문서
-**`Swagger API 문서 링크`** : [ 🔗 Swagger API 문서](https://todo-lyart-omega.vercel.app/)
+**`Swagger API 문서 링크`** : [ 🔗 Swagger API 문서](http://52.196.11.233:8080/swagger-ui/index.html)
 
 ## API 명세서
 
