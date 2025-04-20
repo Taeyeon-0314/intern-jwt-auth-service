@@ -88,16 +88,39 @@ public class AuthController {
     }
 
     @PatchMapping("/admin/users/{userId}/roles")
-    @Operation(summary = "관리자 권한 부여",
-    description = "User권한에서 Admin권한으로 변경",
+    @Operation(
+            summary = "관리자 권한 부여",
+            description = "User 권한에서 Admin 권한으로 변경",
             responses = {
-            @ApiResponse(responseCode = "200", description = "권한 변경 성공" , content = @Content(schema = @Schema(implementation = SignupResponse.class) )),
-                    @ApiResponse(responseCode = "403" , description = "권한 부족(접근 제한)" , content = @Content(examples = @ExampleObject("{\n" +
-                            "  \"error\": {\n" +
-                            "    \"code\": \"ACCESS_DENIED\",\n" +
-                            "    \"message\": \"관리자 권한이 필요한 요청입니다. 접근 권한이 없습니다.\"\n" +
-                            "  }\n" +
-                            "}")))
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "권한 변경 성공",
+                            content = @Content(schema = @Schema(implementation = SignupResponse.class))
+                    ),
+                    @ApiResponse(
+                            responseCode = "403",
+                            description = "만료되었거나 유효하지 않은 토큰입니다.",
+                            content = @Content(
+                                    examples = @ExampleObject("{\n" +
+                                            "  \"error\": {\n" +
+                                            "    \"code\": \"INVALID_TOKEN\",\n" +
+                                            "    \"message\": \"유효하지 않은 인증 토큰입니다.\"\n" +
+                                            "  }\n" +
+                                            "}")
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "403",
+                            description = "권한 부족(접근 제한)",
+                            content = @Content(
+                                    examples = @ExampleObject("{\n" +
+                                            "  \"error\": {\n" +
+                                            "    \"code\": \"ACCESS_DENIED\",\n" +
+                                            "    \"message\": \"관리자 권한이 필요한 요청입니다. 접근 권한이 없습니다.\"\n" +
+                                            "  }\n" +
+                                            "}")
+                            )
+                    )
             }
     )
     public ResponseEntity<?> grantAdmin(@PathVariable Long userId) {
